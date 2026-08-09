@@ -1,0 +1,13 @@
+{
+  "browser_mode": "managed",
+  "managed_profile_dir": "var/browser-profiles/default",
+  "action_pause": {
+    "enabled": true,
+    "min_ms": 800,
+    "max_ms": 2000
+  },
+  "browser_use": true,
+  "managed_browser": "chrome",
+  "headless": true,
+  "cursor_overlay": false
+}

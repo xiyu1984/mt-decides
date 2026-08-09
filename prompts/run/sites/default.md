@@ -1,0 +1,3 @@
+- No additional site-specific policy is configured.
+- Stay on the configured origin unless the task explicitly requires a normal same-business redirect.
+- Do not infer controls or outcomes from another site's saved behavior.
