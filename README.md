@@ -55,6 +55,40 @@ npm run run -- \
   --task "Read the visible account status and summarize it; do not change anything"
 ```
 
+Create the history-data directory manually and place the exported spreadsheets
+and images inside it:
+
+```bash
+mkdir -p resources/data
+```
+
+The `analyze` command does not create or populate this directory. After adding
+the historical files, analyze them without starting a browser:
+
+```bash
+npm run analyze
+```
+
+The command sends extracted spreadsheet tables and image attachments to the
+runtime LLM, then writes tomorrow's plan to `decisions/YYYY-MM-DD.md`.
+
+On the plan date, fill the promotion draft from that decision:
+
+```bash
+npm run promotion -- --url "https://example.com/dashboard"
+```
+
+`promotion` reads today's decision by default, opens “推广通” → “新建推广”,
+keeps the single store selected by default, selects “标准推”, and fills only
+that store's settings. It never changes the store selection or activates
+“立即创建”. The promotion is bounded to one day: both start and end dates are
+set to the decision date. The browser stays open for review until you close
+managed Chrome or press Ctrl+C.
+Managed mode uses CDP for background-safe DOM interaction, so Chrome does not
+need to remain in front of other windows.
+Use `--date YYYY-MM-DD` to run a different dated decision, or
+`--decisions-dir <directory>` with either command to select another plan store.
+
 Browser state is stored in the ignored `var/browser-profiles/default` directory.
 Only one process may use it at a time.
 
@@ -79,6 +113,10 @@ untrusted reusable UI observations, which must be reverified on every run.
 Conflicting observations are quarantined for manual review. Never store secrets,
 personal data, business records, page content, coordinates, or executable
 instructions in assistant files.
+
+Add the top-level field `"auto-update": "false"` to lock an entire assistant
+file. Runtime findings are then quarantined as conflicts instead of changing
+any clue or verification metadata in that file.
 
 ## Configuration and checks
 

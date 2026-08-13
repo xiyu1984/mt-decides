@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "minimax-cn",
+  "defaultModel": "MiniMax-M2.7-highspeed",
   "defaultThinkingLevel": "high"
 }

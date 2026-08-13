@@ -40,6 +40,7 @@ export type WorkflowAssistant = {
   schemaVersion: 1;
   workflow: string;
   scope: string;
+  "auto-update"?: "false";
   createdAt: string;
   updatedAt: string;
   clues: AssistantClue[];
@@ -50,6 +51,7 @@ export type AssistantClueProposal = Pick<AssistantClue, "topic" | "category" | "
 export type AssistantUpdate = {
   assistantPath: string;
   conflictPath: string | null;
+  locked: boolean;
   addedCount: number;
   verifiedCount: number;
   conflictCount: number;
@@ -57,7 +59,7 @@ export type AssistantUpdate = {
 
 type AssistantClueConflict = {
   topic: string;
-  reason: "existing-topic-differs" | "proposal-batch-disagrees";
+  reason: "existing-topic-differs" | "proposal-batch-disagrees" | "locked-file-finding" | "locked-file-verification";
   existingClue: AssistantClue | null;
   proposedClues: AssistantClueProposal[];
 };
@@ -189,6 +191,10 @@ function parseAssistant(definition: AssistantDefinition, value: unknown): Workfl
   if (!isIsoTimestamp(value.createdAt) || !isIsoTimestamp(value.updatedAt)) {
     throw new Error("assistant file has an invalid timestamp");
   }
+  const autoUpdate = value["auto-update"];
+  if (autoUpdate !== undefined && autoUpdate !== "false") {
+    throw new Error('assistant file auto-update must be "false" when present');
+  }
   if (!Array.isArray(value.clues) || value.clues.length > MAX_STORED_CLUES) {
     throw new Error(`assistant file must contain at most ${MAX_STORED_CLUES} clues`);
   }
@@ -202,6 +208,7 @@ function parseAssistant(definition: AssistantDefinition, value: unknown): Workfl
     schemaVersion: SCHEMA_VERSION,
     workflow: definition.workflow,
     scope: definition.scope,
+    ...(autoUpdate === "false" ? { "auto-update": "false" as const } : {}),
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
     clues,
@@ -283,6 +290,44 @@ export async function updateWorkflowAssistant(
   const now = new Date().toISOString();
   const existingByTopic = new Map(assistant.clues.map((clue) => [clue.topic, clue]));
   const existingByContent = new Map(assistant.clues.map((clue) => [contentIdentity(clue.category, clue.text), clue]));
+  if (assistant["auto-update"] === "false") {
+    const proposalsByTopic = new Map<string, AssistantClueProposal[]>();
+    for (const rawProposal of proposals) {
+      const proposal = validateProposal(definition, rawProposal);
+      const group = proposalsByTopic.get(proposal.topic) ?? [];
+      if (!group.some((candidate) => proposalIdentity(candidate) === proposalIdentity(proposal))) group.push(proposal);
+      proposalsByTopic.set(proposal.topic, group);
+    }
+    const requestedVerificationTopics = new Set(
+      verificationTopics.map(normalizeTopic).filter((topic) => existingByTopic.has(topic)),
+    );
+    const conflicts: AssistantClueConflict[] = [];
+    for (const topic of requestedVerificationTopics) {
+      if (proposalsByTopic.has(topic)) continue;
+      conflicts.push({
+        topic,
+        reason: "locked-file-verification",
+        existingClue: existingByTopic.get(topic) ?? null,
+        proposedClues: [],
+      });
+    }
+    for (const [topic, topicProposals] of proposalsByTopic) {
+      conflicts.push({
+        topic,
+        reason: "locked-file-finding",
+        existingClue: existingByTopic.get(topic) ?? null,
+        proposedClues: topicProposals,
+      });
+    }
+    return {
+      assistantPath: relative(cwd, assistantPath(cwd, definition)),
+      conflictPath: await writeConflictBatch(cwd, definition, now, conflicts),
+      locked: true,
+      addedCount: 0,
+      verifiedCount: 0,
+      conflictCount: conflicts.length,
+    };
+  }
   const topicsToVerify = new Set<string>();
   for (const rawTopic of verificationTopics) {
     const topic = normalizeTopic(rawTopic);
@@ -369,23 +414,29 @@ export async function updateWorkflowAssistant(
   return {
     assistantPath: savedPath,
     conflictPath,
+    locked: false,
     addedCount,
     verifiedCount,
     conflictCount: conflicts.length,
   };
 }
 
-export function formatAssistantClues(clues: AssistantClue[]): string {
-  if (clues.length === 0) return "- No saved clues. Discover the UI conservatively.";
-  return clues.map((clue) => (
-    `- [topic ${clue.topic}; ${clue.category}; verified ${clue.lastVerifiedAt}; confirmations ${clue.successCount}] ${clue.text}`
-  )).join("\n");
+export function formatAssistantClues(clues: AssistantClue[], autoUpdate?: "false"): string {
+  const formatted = clues.length === 0
+    ? "- No saved clues. Discover the UI conservatively."
+    : clues.map((clue) => (
+      `- [topic ${clue.topic}; ${clue.category}; verified ${clue.lastVerifiedAt}; confirmations ${clue.successCount}] ${clue.text}`
+    )).join("\n");
+  return autoUpdate === "false"
+    ? `[assistant file auto-update false; locked]\n${formatted}`
+    : formatted;
 }
 
 export function createAssistantClueTool(
   definition: AssistantDefinition,
   existingClues: AssistantClue[],
   canPropose: () => boolean = () => true,
+  autoUpdate?: "false",
 ) {
   validateDefinition(definition);
   let proposals: AssistantClueProposal[] = [];
@@ -397,7 +448,9 @@ export function createAssistantClueTool(
   const tool = defineTool({
     name: "propose_assistant_clues",
     label: "Propose assistant clues",
-    description: "Verify existing clue topics and stage genuinely new or changed reusable UI observations.",
+    description: autoUpdate === "false"
+      ? "Stage reusable UI findings for a locked assistant file. Findings and verification attempts are quarantined as conflicts and never update the file."
+      : "Verify existing clue topics and stage genuinely new or changed reusable UI observations.",
     parameters: Type.Object({
       verifiedTopics: Type.Optional(Type.Array(
         Type.String({ minLength: 1, maxLength: MAX_TOPIC_LENGTH, pattern: TOPIC_PATTERN.source }),
@@ -412,7 +465,6 @@ export function createAssistantClueTool(
     execute: async (_toolCallId, input) => {
       if (!canPropose()) throw new Error("assistant clues cannot be proposed after this run became unsuccessful");
       if (called) throw new Error("assistant clues have already been proposed for this run");
-      called = true;
       const verified = new Set<string>();
       for (const rawTopic of input.verifiedTopics ?? []) {
         const topic = normalizeTopic(rawTopic);
@@ -423,6 +475,10 @@ export function createAssistantClueTool(
       const newContentTopics = new Map<string, string>();
       for (const rawProposal of input.clues) {
         const proposal = validateProposal(definition, rawProposal);
+        if (autoUpdate === "false") {
+          unique.set(proposalIdentity(proposal), proposal);
+          continue;
+        }
         const sameContent = existingByContent.get(contentIdentity(proposal.category, proposal.text));
         if (sameContent) {
           verified.add(sameContent.topic);
@@ -439,6 +495,7 @@ export function createAssistantClueTool(
         newContentTopics.set(contentKey, proposal.topic);
         unique.set(proposalIdentity(proposal), proposal);
       }
+      called = true;
       proposals = [...unique.values()];
       verificationTopics = [...verified];
       return {

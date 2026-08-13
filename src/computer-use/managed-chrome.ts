@@ -16,6 +16,7 @@ export type ManagedChromeTab = {
 };
 
 export type ManagedChrome = {
+  pid: number;
   port: number;
   profileDir: string;
   exited: Promise<void>;
@@ -120,6 +121,7 @@ export async function startManagedChrome(profileDir: string, url: URL): Promise<
     "--no-default-browser-check",
     url.toString(),
   ], { stdio: "ignore" });
+  if (child.pid === undefined) throw new Error("managed Chrome started without a process id");
   const exited = waitForExit(child);
 
   try {
@@ -143,6 +145,7 @@ export async function startManagedChrome(profileDir: string, url: URL): Promise<
   };
 
   return {
+    pid: child.pid,
     port,
     profileDir,
     exited,

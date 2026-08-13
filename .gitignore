@@ -8,3 +8,7 @@ results/
 log/
 *.log
 .DS_Store
+resources/
+temp*
+decisions/
+output/

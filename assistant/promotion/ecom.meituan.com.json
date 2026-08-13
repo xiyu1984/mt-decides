@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "workflow": "promotion",
+  "scope": "https://ecom.meituan.com",
+  "auto-update": "false",
+  "createdAt": "2026-08-09T14:14:03.038Z",
+  "updatedAt": "2026-08-10T02:47:48.944Z",
+  "clues": [
+    {
+      "topic": "navigation.new-promotion",
+      "category": "navigation",
+      "text": "On \"我的推广\", the visible \"新建推广\" button can have a zero-sized accessibility rectangle while its live DOM rectangle is nonzero; if semantic press and plain DOM click fail, a full pointer/mouse event sequence on that uniquely verified button activates it.",
+      "learnedAt": "2026-08-09T14:49:58.000Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 3
+    },
+    {
+      "topic": "inputs.budget-drawer",
+      "category": "inputs",
+      "text": "The standard-promotion budget drawer opens from the row's info/description icon, contains percentage inputs for \"高峰日上调\" and \"预算耗尽上调\", and applies them with the visible \"保存设置\" button.",
+      "learnedAt": "2026-08-09T14:49:58.000Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 3
+    },
+    {
+      "topic": "inputs.delivery-time-editor",
+      "category": "inputs",
+      "text": "The promotion-time editor exposes a \"全选\" checkbox, a 7-day by 24-hour grid, and a visible \"保存修改\" button.",
+      "learnedAt": "2026-08-09T14:49:58.000Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 3
+    },
+    {
+      "topic": "inputs.dual-platform-bid",
+      "category": "inputs",
+      "text": "Switching to dual-platform bidding opens a confirmation dialog with \"仍要切换\"; afterward separate bid inputs are labeled \"点评\" and \"美团\".",
+      "learnedAt": "2026-08-09T14:49:58.000Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 3
+    },
+    {
+      "topic": "inputs.time-grid-cells",
+      "category": "inputs",
+      "text": "In the promotion-time editor, hour-item grid cells ignore plain click(); they need the full pointerdown/mousedown/pointerup/mouseup/click sequence. Mapping is row=hour 0-23, col=周一..周日; uncheck 全选 first to clear all, then select cells.",
+      "learnedAt": "2026-08-10T02:28:22.484Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 2
+    },
+    {
+      "topic": "navigation.promo-version-select",
+      "category": "navigation",
+      "text": "On the new-promotion page, the 极速推/标准推 cards are .promo-version__item; the selected card has a \"checked\" class. Activating a card needs the full pointer event sequence, not plain click().",
+      "learnedAt": "2026-08-10T02:47:48.944Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 1
+    },
+    {
+      "topic": "inputs.date-picker-cell",
+      "category": "inputs",
+      "text": "In the merchant date-picker calendar, clicking the day cell (__cell) does not register; the selection only applies when the innermost .merchant-date-picker-panel-calendar-month__date-date node is clicked with the full pointerdown/mousedown/pointerup/mouseup/click sequence.",
+      "learnedAt": "2026-08-10T02:47:48.944Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 1
+    },
+    {
+      "topic": "inputs.more-settings-drawer",
+      "category": "inputs",
+      "text": "On the standard-promotion creation page, the \"更多设置\" row opens a drawer only via its pencil edit-icon inside .cc-more-setting-flat__value (not by clicking the row or label). The drawer shows 曝光渠道 selection and a 地域拓量 toggle with a 保存设置 button.",
+      "learnedAt": "2026-08-10T02:47:48.944Z",
+      "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
+      "successCount": 1
+    }
+  ]
+}
