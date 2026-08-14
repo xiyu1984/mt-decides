@@ -1,5 +1,5 @@
 {
   "defaultProvider": "minimax-cn",
-  "defaultModel": "MiniMax-M2.7-highspeed",
+  "defaultModel": "MiniMax-M3",
   "defaultThinkingLevel": "high"
 }
