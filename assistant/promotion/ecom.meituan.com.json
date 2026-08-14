@@ -17,7 +17,7 @@
     {
       "topic": "inputs.budget-drawer",
       "category": "inputs",
-      "text": "The standard-promotion budget drawer opens from the row's info/description icon, contains percentage inputs for \"高峰日上调\" and \"预算耗尽上调\", and applies them with the visible \"保存设置\" button.",
+      "text": "The standard-promotion budget drawer opens from the row's info/description icon and contains controls for \"高峰日上调\" and \"预算耗尽上调\". Disabling either option opens a confirmation modal; confirm each one separately with \"确定\", then use the drawer's visible \"保存设置\" button to apply the changes.",
       "learnedAt": "2026-08-09T14:49:58.000Z",
       "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
       "successCount": 3
@@ -25,7 +25,7 @@
     {
       "topic": "inputs.delivery-time-editor",
       "category": "inputs",
-      "text": "The promotion-time editor exposes a \"全选\" checkbox, a 7-day by 24-hour grid, and a visible \"保存修改\" button.",
+      "text": "On the standard-promotion page, open the promotion-time editor with the pencil edit icon beside the current time summary; clicking the time text or row may do nothing. The editor exposes a \"全选\" checkbox, a 7-day by 24-hour grid, and a visible \"保存修改\" button.",
       "learnedAt": "2026-08-09T14:49:58.000Z",
       "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
       "successCount": 3
@@ -33,7 +33,7 @@
     {
       "topic": "inputs.dual-platform-bid",
       "category": "inputs",
-      "text": "Switching to dual-platform bidding opens a confirmation dialog with \"仍要切换\"; afterward separate bid inputs are labeled \"点评\" and \"美团\".",
+      "text": "Switching to dual-platform bidding opens a confirmation dialog with \"仍要切换\"; afterward separate inputs are labeled \"点评\" and \"美团\". Enter and verify each decision value independently. Display may drop trailing zeros (for example, 1.30 appears as 1.3), so compare numerically.",
       "learnedAt": "2026-08-09T14:49:58.000Z",
       "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
       "successCount": 3
@@ -41,7 +41,7 @@
     {
       "topic": "inputs.time-grid-cells",
       "category": "inputs",
-      "text": "In the promotion-time editor, hour-item grid cells ignore plain click(); they need the full pointerdown/mousedown/pointerup/mouseup/click sequence. Mapping is row=hour 0-23, col=周一..周日; uncheck 全选 first to clear all, then select cells.",
+      "text": "In the promotion-time editor, grid cells ignore plain click() and need the full pointerdown/mousedown/pointerup/mouseup/click sequence. Rows map to hours 0-23 and columns to 周一..周日. Uncheck \"全选\", select the cells, then verify \"已选择时段\" matches the requested schedule before pressing \"保存修改\".",
       "learnedAt": "2026-08-10T02:28:22.484Z",
       "lastVerifiedAt": "2026-08-10T02:47:48.944Z",
       "successCount": 2
