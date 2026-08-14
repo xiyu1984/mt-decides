@@ -84,10 +84,41 @@ that store's settings. It never changes the store selection or activates
 “立即创建”. The promotion is bounded to one day: both start and end dates are
 set to the decision date. The browser stays open for review until you close
 managed Chrome or press Ctrl+C.
-Managed mode uses CDP for background-safe DOM interaction, so Chrome does not
-need to remain in front of other windows.
+Managed mode uses CDP for background-safe accessibility-tree interaction and
+bounded DOM fallbacks, so Chrome does not need to remain in front of other
+windows.
 Use `--date YYYY-MM-DD` to run a different dated decision, or
 `--decisions-dir <directory>` with either command to select another plan store.
+
+### Semantic browser tools
+
+The loaded `pi-computer-use` extension registers the project's basic
+Accessibility Tree tools directly with PI:
+
+- `observe_ui` with `mode="semantic"` captures the current accessibility tree.
+- `search_ui` queries its complete cached state by text, role, or capability.
+- `inspect_ui` returns one node's semantic fields, state, geometry, and actions.
+- `act_ui` performs checked actions against refs from that state and returns the
+  successor state for verification.
+
+Workflow prompts use semantic state for grounding and verification while each
+trusted site policy chooses the action-delivery method. They do not reason about
+the computer-use extension's internal backend. Native browser windows do not
+use DOM evaluation. A delivered action is not successful until its visible
+successor state or postcondition is verified.
+
+The Meituan promotion policy uses bounded DOM delivery for its known custom
+business controls because repeated runs showed unreliable `act_ui` delivery.
+It still uses semantic observations to identify the page, preserve the selected
+store, and verify the final result. Promotion workflows finish structural
+dialogs and drawers before setting budget and bids, then perform one final
+verification.
+
+Runtime logs include bounded tool intent, timing, outcome, and safe error-class
+diagnostics. Those diagnostic lines never include form values, page result
+text, DOM expressions, or private model reasoning. Capture both streams with
+`2>&1` when one combined log is needed; assistant narration (which can summarize
+final settings) is written to stdout and diagnostics to stderr.
 
 Browser state is stored in the ignored `var/browser-profiles/default` directory.
 Only one process may use it at a time.

@@ -22,6 +22,7 @@ import {
   type AssistantClue,
 } from "../assistant/workflow-assistant.js";
 import { startManagedChrome, type ManagedChrome } from "../computer-use/managed-chrome.js";
+import { formatToolCompletion, formatToolStart } from "../computer-use/tool-diagnostics.js";
 import { readHttpUrl } from "../computer-use/url.js";
 import {
   resolveActionPause,
@@ -179,8 +180,17 @@ Options:
     void session.abort();
   };
   process.on("SIGINT", onInterrupt);
+  const toolStartedAt = new Map<string, number>();
   const unsubscribe = session.subscribe((event) => {
-    if (event.type === "tool_execution_start") console.error(`[tool] ${event.toolName}`);
+    if (event.type === "tool_execution_start") {
+      toolStartedAt.set(event.toolCallId, performance.now());
+      console.error(formatToolStart(event.toolName, event.args));
+    }
+    if (event.type === "tool_execution_end") {
+      const startedAt = toolStartedAt.get(event.toolCallId) ?? performance.now();
+      toolStartedAt.delete(event.toolCallId);
+      console.error(formatToolCompletion(event.toolName, event.result, event.isError, performance.now() - startedAt));
+    }
     if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
       process.stdout.write(event.assistantMessageEvent.delta);
     }

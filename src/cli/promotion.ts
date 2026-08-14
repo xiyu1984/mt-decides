@@ -24,6 +24,7 @@ import {
   type AssistantClue,
 } from "../assistant/workflow-assistant.js";
 import { startManagedChrome, type ManagedChrome } from "../computer-use/managed-chrome.js";
+import { formatToolCompletion, formatToolStart } from "../computer-use/tool-diagnostics.js";
 import { readHttpUrl } from "../computer-use/url.js";
 import {
   resolveActionPause,
@@ -237,9 +238,11 @@ The workflow fills today's standard-promotion settings and stops before
   process.on("SIGTERM", onInterrupt);
   let assistantError: string | undefined;
   let assistantText = "";
+  const toolStartedAt = new Map<string, number>();
   const unsubscribe = session.subscribe((event) => {
     if (event.type === "tool_execution_start") {
-      console.error(`[tool] ${event.toolName}`);
+      toolStartedAt.set(event.toolCallId, performance.now());
+      console.error(formatToolStart(event.toolName, event.args));
     }
     if (
       event.type === "tool_execution_end"
@@ -247,6 +250,11 @@ The workflow fills today's standard-promotion settings and stops before
       && !event.isError
     ) {
       stateChangingToolCount += 1;
+    }
+    if (event.type === "tool_execution_end") {
+      const startedAt = toolStartedAt.get(event.toolCallId) ?? performance.now();
+      toolStartedAt.delete(event.toolCallId);
+      console.error(formatToolCompletion(event.toolName, event.result, event.isError, performance.now() - startedAt));
     }
     if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
       assistantText += event.assistantMessageEvent.delta;
